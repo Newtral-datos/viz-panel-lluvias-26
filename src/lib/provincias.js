@@ -1,6 +1,6 @@
 import { Protocol } from 'pmtiles';
 
-const URL = 'pmtiles://spain_provincias.pmtiles';
+const URL = `pmtiles://${import.meta.env.BASE_URL}spain_provincias.pmtiles`;
 const SOURCE_LAYER = 'limites_spain';
 const LINE_COLOR = '#494949';
 

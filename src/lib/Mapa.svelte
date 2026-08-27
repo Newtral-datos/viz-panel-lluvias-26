@@ -72,7 +72,7 @@
 			);
 
 			map.on('load', async () => {
-				const meta = await fetch('/meta.json').then((r) => r.json()).catch(() => ({}));
+				const meta = await fetch(`${import.meta.env.BASE_URL}meta.json`).then((r) => r.json()).catch(() => ({}));
 
 				añadirCapaProvincias(map);
 

@@ -7,7 +7,7 @@ import { formatearNumero } from './formato.js';
 // etiquetan/formatean sus valores en panel, leyenda, tooltip y popup.
 export const VARIABLES = {
 	temperatura: {
-		pmtiles: '/temperatura.pmtiles',
+		pmtiles: `${import.meta.env.BASE_URL}temperatura.pmtiles`,
 		sourceLayer: 'temperatura',
 		dominio: 5,
 		colorNeg: FRIO,
@@ -22,7 +22,7 @@ export const VARIABLES = {
 		fmtDif: (d) => `${d > 0 ? '+' : ''}${formatearNumero(d, 1)} °C`
 	},
 	lluvia: {
-		pmtiles: '/lluvia.pmtiles',
+		pmtiles: `${import.meta.env.BASE_URL}lluvia.pmtiles`,
 		sourceLayer: 'lluvia',
 		dominio: 4,
 		colorNeg: CALOR,
