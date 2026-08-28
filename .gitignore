@@ -12,12 +12,14 @@ dist
 dist-ssr
 *.local
 
-# Datos del día, generados por scripts/generar_pmtiles.py (no versionar; se
+# Datos del día, generados por scripts/05_generar_pmtiles.py (no versionar; se
 # regeneran corriendo el pipeline). spain_provincias.pmtiles SÍ se versiona:
 # es un límite administrativo estático, no hay script que lo regenere.
 public/lluvia.pmtiles
 public/temperatura.pmtiles
+public/avisos.pmtiles
 public/meta.json
+public/estadisticas.json
 
 # Editor directories and files
 .vscode/*

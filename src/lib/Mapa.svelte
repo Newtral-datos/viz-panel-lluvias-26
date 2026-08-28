@@ -144,6 +144,18 @@
 					map.getCanvas().style.cursor = '';
 				});
 				map.on('click', 'capa-avisos-relleno', (e) => {
+					// El relleno de avisos va por debajo de los puntos de estación, pero
+					// MapLibre dispara los listeners de clic de cada capa por separado —
+					// no hay "topmost wins" automático entre listeners de capas distintas.
+					// Si hay una estación justo en este punto (la capa activa,
+					// Temperatura o Lluvia), es lo que se ve encima visualmente y debe
+					// ganar el clic; si no, el propio listener de la estación (capa-${activa})
+					// ya se encarga de su popup y este simplemente no hace nada.
+					const capaActiva = `capa-${activa}`;
+					const hayEstacion =
+						map.getLayer(capaActiva) && map.queryRenderedFeatures(e.point, { layers: [capaActiva] }).length > 0;
+					if (hayEstacion) return;
+
 					const f = e.features?.[0];
 					if (!f) return;
 					if (!popup) popup = new maplibregl.Popup({ closeButton: true, closeOnClick: true, offset: 10, maxWidth: '270px' });

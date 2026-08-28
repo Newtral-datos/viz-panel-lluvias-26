@@ -1,3 +1,5 @@
+import { resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { defineConfig } from 'vite'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
@@ -6,6 +8,9 @@ import { viteStaticCopy } from 'vite-plugin-static-copy'
 // rutas de assets deben ir bajo /viz-panel-lluvias-26/, no en la raíz, porque
 // GitHub Pages sirve el proyecto en ese subpath.
 const REPO_NAME = 'viz-panel-lluvias-26'
+
+// __dirname no existe en ESM puro (package.json tiene "type": "module").
+const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -42,5 +47,19 @@ export default defineConfig({
   // carga pero las capas GeoJSON, que dependen del worker, no se llegan a pintar).
   optimizeDeps: {
     exclude: ['maplibre-gl'],
+  },
+  // Build multi-página: dos entradas HTML en el mismo repo/despliegue, cada
+  // una con su propio bundle (Vite hace code-splitting por entrada — la
+  // página de cabecera no arrastra maplibre-gl, que solo importa Mapa.svelte).
+  // "cabecera" produce dist/cabecera/index.html, o sea
+  // /viz-panel-lluvias-26/cabecera/ en producción — misma URL base, distinto
+  // slug final. Ver "Publicación" en CLAUDE.md.
+  build: {
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        cabecera: resolve(__dirname, 'cabecera/index.html'),
+      },
+    },
   },
 })
