@@ -6,8 +6,9 @@
 	import { colorExpr, colorEnPaso, colorDePunto } from './colores.js';
 	import { VARIABLES } from './variables.js';
 	import { CARTO_STYLE_URL, localizarEtiquetasCarto, crearControlRestablecerVista } from './mapaEstilo.js';
-	import { construirTooltipHTML, construirPopupHTML } from './popup.js';
+	import { construirTooltipHTML, construirPopupHTML, construirPopupAvisosHTML } from './popup.js';
 	import { registrarProtocoloPMTiles, añadirCapaProvincias } from './provincias.js';
+	import { añadirCapaAvisos, COLORES_AVISO } from './avisos.js';
 
 	const MAP_CENTER = [-8, 35.8];
 	const MAP_ZOOM = 4.75;
@@ -74,6 +75,9 @@
 			map.on('load', async () => {
 				const meta = await fetch(`${import.meta.env.BASE_URL}meta.json`).then((r) => r.json()).catch(() => ({}));
 
+				// Avisos va primero: relleno de zona por debajo de los límites de
+				// provincia y de los puntos de estación, que se añaden después.
+				añadirCapaAvisos(map);
 				añadirCapaProvincias(map);
 
 				if (meta?.temperatura && meta?.lluvia) metaPorDominio = meta;
@@ -131,6 +135,22 @@
 						const contenido = popup.getElement()?.querySelector('.maplibregl-popup-content');
 						if (contenido) contenido.style.borderColor = colorDePunto(f.properties, cfg);
 					});
+				});
+
+				map.on('mouseenter', 'capa-avisos-relleno', () => {
+					map.getCanvas().style.cursor = 'pointer';
+				});
+				map.on('mouseleave', 'capa-avisos-relleno', () => {
+					map.getCanvas().style.cursor = '';
+				});
+				map.on('click', 'capa-avisos-relleno', (e) => {
+					const f = e.features?.[0];
+					if (!f) return;
+					if (!popup) popup = new maplibregl.Popup({ closeButton: true, closeOnClick: true, offset: 10, maxWidth: '270px' });
+					popup.setLngLat(e.lngLat).setHTML(construirPopupAvisosHTML(f.properties)).addTo(map);
+					const contenido = popup.getElement()?.querySelector('.maplibregl-popup-content');
+					const color = COLORES_AVISO[f.properties.color] ?? COLORES_AVISO.verde;
+					if (contenido) contenido.style.borderColor = color;
 				});
 			});
 		})();
@@ -399,6 +419,36 @@
 		color: var(--ink-muted);
 		font-style: italic;
 		line-height: 1.4;
+	}
+
+	:global(.popup-aviso) {
+		display: flex;
+		flex-direction: column;
+		gap: 3px;
+		padding: 8px 0 8px 9px;
+		border-left: 3px solid;
+		border-top: 1px solid var(--border);
+	}
+	:global(.popup-aviso:first-child) {
+		border-top: none;
+		padding-top: 0;
+	}
+	:global(.popup-aviso-cabecera) {
+		display: flex;
+		align-items: center;
+		gap: 7px;
+		font-size: 12.5px;
+	}
+	:global(.popup-aviso-dato) {
+		margin: 0;
+		font-size: 11.5px;
+		color: var(--ink-muted);
+	}
+	:global(.popup-aviso-vigencia) {
+		margin: 0;
+		font-family: var(--font-mono);
+		font-size: 10.5px;
+		color: var(--ink-muted);
 	}
 
 	.mapa-root {

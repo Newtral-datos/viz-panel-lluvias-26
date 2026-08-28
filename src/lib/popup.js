@@ -1,4 +1,5 @@
 import { colorDePunto, colorConAlpha } from './colores.js';
+import { COLORES_AVISO } from './avisos.js';
 import { formatearNumero } from './formato.js';
 
 function fila(etiqueta, valor, color) {
@@ -68,5 +69,70 @@ export function construirPopupHTML({ cfg, propiedades: p }) {
 				${fila(cfg.tituloValor, cfg.fmt(p.valor))}
 			</dl>
 			${bloqueHistorico}
+		</div>`;
+}
+
+/** "28 ago 12:00" a partir de un datetime CAP con offset (ej. "2026-08-28T12:00:00+02:00"). */
+function fechaCorta(iso) {
+	if (!iso) return null;
+	const d = new Date(iso);
+	if (Number.isNaN(d.getTime())) return null;
+	const texto = d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+	return texto.replace('.', '');
+}
+
+function vigenciaTexto(desde, hasta) {
+	const d = fechaCorta(desde);
+	const h = fechaCorta(hasta);
+	if (d && h) return `${d} – ${h}`;
+	return d || h || null;
+}
+
+/** Un aviso activo dentro del popup de zona: fenómeno + severidad, parámetro/probabilidad
+ * si vienen informados, y vigencia. Varias zonas pueden tener varios avisos a la vez
+ * (ej. lluvias amarillo + viento naranja) — por eso esto es una lista, no un valor único. */
+function bloqueAviso(a) {
+	const color = COLORES_AVISO[a.color] ?? COLORES_AVISO.verde;
+	const parametro = a.parametro_valor
+		? `${a.parametro_nombre ? a.parametro_nombre + ': ' : ''}${a.parametro_valor}`
+		: null;
+	const vigencia = vigenciaTexto(a.efectivo_desde, a.efectivo_hasta);
+	return `
+		<div class="popup-aviso" style="border-color:${color}">
+			<div class="popup-aviso-cabecera">
+				<span class="popup-badge" style="background:${colorConAlpha(color, 0.14)};color:${color}">${a.severidad ?? ''}</span>
+				<strong>${a.evento}</strong>
+			</div>
+			${parametro ? `<p class="popup-aviso-dato">${parametro}${a.probabilidad ? ` | prob. ${a.probabilidad}` : ''}</p>` : ''}
+			${vigencia ? `<p class="popup-aviso-vigencia">${vigencia}</p>` : ''}
+		</div>`;
+}
+
+/**
+ * Popup de una zona Meteoalerta: lista TODOS sus avisos activos a la vez (una zona
+ * puede tener varios avisos de fenómenos distintos simultáneos), no solo el más
+ * grave — el más grave es el que decide el color de relleno de la zona, ver
+ * avisos.js::colorAvisoExpr.
+ */
+export function construirPopupAvisosHTML(propiedades) {
+	const p = propiedades;
+	const avisos = p.avisos_json ? JSON.parse(p.avisos_json) : [];
+	const color = COLORES_AVISO[p.color] ?? COLORES_AVISO.verde;
+
+	const cuerpo =
+		avisos.length > 0
+			? avisos.map(bloqueAviso).join('')
+			: '<p class="popup-sin-historico">Sin aviso activo en esta zona.</p>';
+
+	return `
+		<div class="popup">
+			<div class="popup-header">
+				<strong class="popup-nombre">${p.nom_z}</strong>
+				<div class="popup-header-sub">
+					<span class="popup-sub">${p.nom_prov}</span>
+					<span class="popup-badge" style="background:${colorConAlpha(color, 0.14)};color:${color}">${p.color}</span>
+				</div>
+			</div>
+			${cuerpo}
 		</div>`;
 }
