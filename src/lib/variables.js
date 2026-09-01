@@ -5,22 +5,10 @@ import { formatearNumero } from './formato.js';
 // PMTiles (generado por scripts/generar_pmtiles.py) y su source-layer, el
 // dominio de la escala de color, qué polo es cada color, y cómo se
 // etiquetan/formatean sus valores en panel, leyenda, tooltip y popup.
+// Orden del objeto = orden de los botones del segmented control en Mapa.svelte
+// (`{#each Object.entries(VARIABLES) ...}`) — lluvia primero porque es el
+// dominio por defecto (Mapa.svelte::activa se inicializa en 'lluvia').
 export const VARIABLES = {
-	temperatura: {
-		pmtiles: `${import.meta.env.BASE_URL}temperatura.pmtiles`,
-		sourceLayer: 'temperatura',
-		dominio: 5,
-		colorNeg: FRIO,
-		colorPos: CALOR,
-		unidad: '°C',
-		etiqueta: 'Temperatura',
-		extremoNeg: 'Más frío',
-		extremoPos: 'Más calor',
-		tituloValor: 'Temperatura máxima',
-		tituloHistorico: 'Media histórica de máximas',
-		fmt: (v) => `${formatearNumero(v, 1)} °C`,
-		fmtDif: (d) => `${d > 0 ? '+' : ''}${formatearNumero(d, 1)} °C`
-	},
 	lluvia: {
 		pmtiles: `${import.meta.env.BASE_URL}lluvia.pmtiles`,
 		sourceLayer: 'lluvia',
@@ -35,5 +23,20 @@ export const VARIABLES = {
 		tituloHistorico: 'Media histórica diaria',
 		fmt: (v) => `${formatearNumero(v, 1)} mm`,
 		fmtDif: (d) => `${d > 0 ? '+' : ''}${formatearNumero(d, 1)} mm`
+	},
+	temperatura: {
+		pmtiles: `${import.meta.env.BASE_URL}temperatura.pmtiles`,
+		sourceLayer: 'temperatura',
+		dominio: 5,
+		colorNeg: FRIO,
+		colorPos: CALOR,
+		unidad: '°C',
+		etiqueta: 'Temperatura',
+		extremoNeg: 'Más frío',
+		extremoPos: 'Más calor',
+		tituloValor: 'Temperatura máxima',
+		tituloHistorico: 'Media histórica de máximas',
+		fmt: (v) => `${formatearNumero(v, 1)} °C`,
+		fmtDif: (d) => `${d > 0 ? '+' : ''}${formatearNumero(d, 1)} °C`
 	}
 };

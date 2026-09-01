@@ -88,6 +88,11 @@ function vigenciaTexto(desde, hasta) {
 	return d || h || null;
 }
 
+// <severity> del CAP viene en inglés (estándar OASIS: Minor/Moderate/Severe/
+// Extreme) — Minor no llega aquí (03_avisos.py ya lo descarta, no es un aviso
+// real de zona), así que solo hace falta traducir estas tres.
+const SEVERIDAD_ES = { Moderate: 'Moderado', Severe: 'Severo', Extreme: 'Extremo' };
+
 /** Un aviso activo dentro del popup de zona: fenómeno + severidad, parámetro/probabilidad
  * si vienen informados, y vigencia. Varias zonas pueden tener varios avisos a la vez
  * (ej. lluvias amarillo + viento naranja) — por eso esto es una lista, no un valor único. */
@@ -97,10 +102,11 @@ function bloqueAviso(a) {
 		? `${a.parametro_nombre ? a.parametro_nombre + ': ' : ''}${a.parametro_valor}`
 		: null;
 	const vigencia = vigenciaTexto(a.efectivo_desde, a.efectivo_hasta);
+	const severidad = SEVERIDAD_ES[a.severidad] ?? a.severidad ?? '';
 	return `
 		<div class="popup-aviso" style="border-color:${color}">
 			<div class="popup-aviso-cabecera">
-				<span class="popup-badge" style="background:${colorConAlpha(color, 0.14)};color:${color}">${a.severidad ?? ''}</span>
+				<span class="popup-badge" style="background:${colorConAlpha(color, 0.14)};color:${color}">${severidad}</span>
 				<strong>${a.evento}</strong>
 			</div>
 			${parametro ? `<p class="popup-aviso-dato">${parametro}${a.probabilidad ? ` | prob. ${a.probabilidad}` : ''}</p>` : ''}

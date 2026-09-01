@@ -11,7 +11,7 @@
 	import { añadirCapaAvisos, COLORES_AVISO } from './avisos.js';
 
 	const MAP_CENTER = [-8, 35.8];
-	const MAP_ZOOM = 4.75;
+	const MAP_ZOOM = 4.2;
 	const MAP_BOUNDS = [
 		[-32, 20],
 		[16, 50]
@@ -20,10 +20,11 @@
 	const METADATA_VACIA = { fecha_actualizacion: null, fecha_dato: null, retraso_dias: null, sin_historico: 0, total: 0 };
 
 	let mapEl;
-	let activa = $state('temperatura');
+	let activa = $state('lluvia');
 	let soloConHistorico = $state(true);
 	let metaPorDominio = $state({ temperatura: METADATA_VACIA, lluvia: METADATA_VACIA });
 	let mapaInstancia = $state(null);
+	let panelColapsado = $state(false);
 
 	function formatearFechaLarga(fechaISO) {
 		if (!fechaISO) return '';
@@ -201,57 +202,64 @@
 <div class="mapa-root">
 	<div bind:this={mapEl} id="map"></div>
 
-	<div class="panel">
-		{#if metaActiva.fecha_actualizacion}
-			<p class="panel-fecha">Actualizado el {formatearFechaLarga(metaActiva.fecha_actualizacion)}</p>
-		{/if}
-		<div class="segmented" role="group" aria-label="Variable a mostrar">
-			{#each Object.entries(VARIABLES) as [clave, v]}
-				<button class:activo={activa === clave} onclick={() => (activa = clave)} aria-pressed={activa === clave}>
-					{v.etiqueta}
-				</button>
-			{/each}
-		</div>
-		<p class="panel-nota">comparado con la media 1991-2020 del mismo mes</p>
-
-		<div class="panel-sep"></div>
-
-		<div class="panel-toggle-row">
-			<span class="panel-toggle-label">Solo con histórico</span>
+	<div class="panel" class:colapsado={panelColapsado}>
+		<div class="panel-cabecera">
+			{#if metaActiva.fecha_actualizacion}
+				<p class="panel-fecha">Actualizado el {formatearFechaLarga(metaActiva.fecha_actualizacion)}</p>
+			{/if}
 			<button
-				class="switch"
-				class:activo={soloConHistorico}
-				role="switch"
-				aria-checked={soloConHistorico}
-				aria-label="Mostrar solo estaciones con histórico"
-				onclick={() => (soloConHistorico = !soloConHistorico)}
-			></button>
+				class="panel-toggle-colapso"
+				onclick={() => (panelColapsado = !panelColapsado)}
+				aria-label={panelColapsado ? 'Expandir panel' : 'Contraer panel'}
+				aria-expanded={!panelColapsado}
+			>
+				<svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d={panelColapsado ? 'M6 8l4 4 4-4' : 'M6 12l4-4 4 4'} />
+				</svg>
+			</button>
 		</div>
 
-		<div class="panel-sep"></div>
-
-		<div class="leyenda">
-			<div class="leyenda-cabecera">
-				<span>{cfgActiva.extremoNeg}</span>
-				<span>{cfgActiva.extremoPos}</span>
-			</div>
-			<div class="leyenda-barra">
-				{#each pasosLeyenda as t}
-					<span class="leyenda-paso" style="background:{colorEnPaso(t, cfgActiva)}"></span>
+		{#if !panelColapsado}
+			<div class="segmented" role="group" aria-label="Variable a mostrar">
+				{#each Object.entries(VARIABLES) as [clave, v]}
+					<button class:activo={activa === clave} onclick={() => (activa = clave)} aria-pressed={activa === clave}>
+						{v.etiqueta}
+					</button>
 				{/each}
 			</div>
-			<div class="leyenda-pie">
-				<span class="leyenda-chip"></span>
-				<span>sin histórico ({metaActiva.sin_historico}/{metaActiva.total})</span>
-			</div>
-		</div>
+			<p class="panel-nota">comparado con la media 1991-2020 del mismo mes</p>
 
-		{#if metaActiva.retraso_dias != null}
 			<div class="panel-sep"></div>
-			<p class="panel-pie">
-				AEMET: {cfgActiva.etiqueta.toLowerCase()} con {metaActiva.retraso_dias}
-				{metaActiva.retraso_dias === 1 ? 'día' : 'días'} de retraso
-			</p>
+
+			<div class="panel-toggle-row">
+				<span class="panel-toggle-label">Solo con histórico</span>
+				<button
+					class="switch"
+					class:activo={soloConHistorico}
+					role="switch"
+					aria-checked={soloConHistorico}
+					aria-label="Mostrar solo estaciones con histórico"
+					onclick={() => (soloConHistorico = !soloConHistorico)}
+				></button>
+			</div>
+
+			<div class="panel-sep"></div>
+
+			<div class="leyenda">
+				<div class="leyenda-cabecera">
+					<span>{cfgActiva.extremoNeg}</span>
+					<span>{cfgActiva.extremoPos}</span>
+				</div>
+				<div class="leyenda-barra">
+					{#each pasosLeyenda as t}
+						<span class="leyenda-paso" style="background:{colorEnPaso(t, cfgActiva)}"></span>
+					{/each}
+				</div>
+				<div class="leyenda-pie">
+					<span class="leyenda-chip"></span>
+					<span>sin histórico ({metaActiva.sin_historico}/{metaActiva.total})</span>
+				</div>
+			</div>
 		{/if}
 	</div>
 </div>
@@ -487,12 +495,40 @@
 		box-shadow: var(--shadow);
 		padding: 14px;
 	}
+	.panel-cabecera {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 10px;
+		margin-bottom: 8px;
+	}
+	.panel.colapsado .panel-cabecera {
+		margin-bottom: 0;
+	}
 	.panel-fecha {
-		margin: 0 0 8px;
+		margin: 0;
 		font-size: 11px;
 		font-weight: 700;
 		letter-spacing: 0.03em;
 		text-transform: uppercase;
+		color: var(--ink);
+	}
+	.panel-toggle-colapso {
+		display: none;
+		flex-shrink: 0;
+		align-items: center;
+		justify-content: center;
+		width: 22px;
+		height: 22px;
+		margin-top: -1px;
+		border: none;
+		border-radius: 6px;
+		background: none;
+		color: var(--ink-muted);
+		cursor: pointer;
+	}
+	.panel-toggle-colapso:hover {
+		background: var(--card-2);
 		color: var(--ink);
 	}
 	.segmented {
@@ -521,12 +557,6 @@
 	}
 	.panel-nota {
 		margin: 8px 2px 0;
-		font-size: 10.5px;
-		color: var(--ink-muted);
-		line-height: 1.35;
-	}
-	.panel-pie {
-		margin: 0 2px;
 		font-size: 10.5px;
 		color: var(--ink-muted);
 		line-height: 1.35;
@@ -616,6 +646,12 @@
 	@media (max-width: 640px) {
 		.panel {
 			width: calc(100vw - 32px);
+		}
+		/* Con avisos + leyenda + toggle, el panel ocupa bastante alto en pantallas
+		   pequeñas — en móvil se puede contraer a solo la cabecera (fecha + botón)
+		   para liberar mapa. En escritorio no hace falta, hay sitio de sobra. */
+		.panel-toggle-colapso {
+			display: flex;
 		}
 	}
 </style>

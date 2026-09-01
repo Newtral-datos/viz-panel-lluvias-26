@@ -70,9 +70,8 @@
 					{datos.zonas_en_aviso != null ? datos.zonas_en_aviso : '—'}
 				</span>
 			</div>
-		</div>
-		{#if datos.zonas_amarillo != null}
-			<div class="tarjeta tarjeta--desglose">
+			{#if datos.zonas_amarillo != null}
+				<div class="stat-sep"></div>
 				<div class="stat">
 					<span class="stat-label" style="color:{COLORES_AVISO.amarillo}">En amarillo</span>
 					<span class="stat-valor" style="color:{COLORES_AVISO.amarillo}">{datos.zonas_amarillo}</span>
@@ -87,8 +86,8 @@
 					<span class="stat-label" style="color:{COLORES_AVISO.rojo}">En rojo</span>
 					<span class="stat-valor" style="color:{COLORES_AVISO.rojo}">{datos.zonas_rojo}</span>
 				</div>
-			</div>
-		{/if}
+			{/if}
+		</div>
 		{#if datos.fecha_actualizacion}
 			<p class="pie">Datos AEMET actualizados el {formatearFechaLarga(datos.fecha_actualizacion)}</p>
 		{/if}
@@ -130,23 +129,22 @@
 		color: var(--ink-muted);
 		font-size: 14px;
 	}
+	/* Todo en una sola fila (pedido expreso) — en pantallas estrechas los stats
+	   pasan a envolver en varias líneas (flex-wrap) en vez de apilarse en una
+	   columna larga: mantiene grupos de "etiqueta + valor" juntos y legibles
+	   sin que la cabecera ocupe media pantalla de alto en móvil. */
 	.tarjeta {
 		display: flex;
-		align-items: stretch;
+		flex-wrap: wrap;
+		align-items: center;
 		justify-content: center;
 		background: var(--card);
 		border: 1px solid var(--border);
 		border-radius: 12px;
 		box-shadow: var(--shadow);
-		padding: 20px 32px;
-		gap: 32px;
-	}
-	.tarjeta--desglose {
-		padding: 14px 28px;
-		gap: 24px;
-	}
-	.tarjeta--desglose .stat-valor {
-		font-size: 20px;
+		padding: 18px 28px;
+		gap: 20px 28px;
+		max-width: 100%;
 	}
 	.stat {
 		display: flex;
@@ -156,21 +154,23 @@
 		text-align: center;
 	}
 	.stat-label {
-		font-size: 11px;
+		font-size: 10.5px;
 		font-weight: 700;
 		letter-spacing: 0.03em;
 		text-transform: uppercase;
 		color: var(--ink-muted);
+		white-space: nowrap;
 	}
 	.stat-valor {
 		font-family: var(--font-mono);
-		font-size: 28px;
+		font-size: 24px;
 		font-weight: 700;
 		color: var(--ink);
 		white-space: nowrap;
 	}
 	.stat-sep {
 		width: 1px;
+		align-self: stretch;
 		background: var(--border);
 	}
 	.pie {
@@ -181,14 +181,21 @@
 	}
 
 	@media (max-width: 640px) {
-		.tarjeta {
-			flex-direction: column;
-			gap: 16px;
-			padding: 16px 20px;
+		.cabecera-root {
+			padding: 16px;
 		}
+		.tarjeta {
+			padding: 16px 18px;
+			gap: 14px 18px;
+		}
+		.stat-valor {
+			font-size: 19px;
+		}
+		/* Los separadores verticales no funcionan bien contra un flex-wrap donde
+		   los stats saltan de línea de forma impredecible según el ancho — se
+		   ocultan y el espacio del gap ya separa visualmente cada grupo. */
 		.stat-sep {
-			width: auto;
-			height: 1px;
+			display: none;
 		}
 	}
 </style>
