@@ -1,0 +1,31 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Datos del día, generados por scripts/generar_pmtiles.py (no versionar; se
+# regeneran corriendo el pipeline). spain_provincias.pmtiles SÍ se versiona:
+# es un límite administrativo estático, no hay script que lo regenere.
+public/lluvia.pmtiles
+public/temperatura.pmtiles
+public/meta.json
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
